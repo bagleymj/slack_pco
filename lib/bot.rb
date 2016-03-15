@@ -6,14 +6,14 @@ class Bot
   require 'websocket-client-simple'
   require 'date'
 
-  def get_date_for(channel_id)
+  def self.get_date_for(channel_id)
    channel = $rtm['channels'].select {|channel| channel['id'] == channel_id} 
    channel_name = channel[0]['name']
    puts channel_name
    Date.parse(channel_name)
   end
 
-  def get_band_list(date)
+  def self.get_band_list(date)
     @pco = PCO::API::new(basic_auth_token: PCO_APP_ID, 
                         basic_auth_secret: PCO_SECRET)
 
@@ -83,8 +83,8 @@ class Bot
         text = message['text']
         puts "Someone said #{text} in channel #{channel_id}"
         if text.strip.downcase == "band"
-          date = get_date_for channel_id
-          band_list = get_band_list(date)
+          date = Bot.get_date_for channel_id
+          band_list = Bot.get_band_list(date)
           band_list.each do |member|
             i += 1
             response = {id: i, type: 'message', channel: channel_id, text: member}.to_json
