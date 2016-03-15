@@ -35,11 +35,13 @@ class Bot
       plan_id = plan[0]['id']
       band = @pco.services.v2.service_types[type_id].plans[plan_id].team_members.get['data']
       band.each do |member|
-        puts member
         name = member['attributes']['name']
         position = member ['attributes']['team_position_name']
         band_list << "#{name} --- #{position}"
       end
+    end
+    band_list.each do |entry|
+      puts entry
     end
     return band_list
   end

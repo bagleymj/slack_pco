@@ -1,11 +1,21 @@
-def launch_bot
+def launch_app
   require './lib/bot.rb'
-  Bot.new
+  require './lib/slack.rb'
+  processes =[]
+  processes << Thread.new{
+    Slack.new
+  }
+  processes << Thread.new{
+    Bot.new
+  }
+  processes.each do |thread|
+    thread.join
+  end
 end
 
 if File.file?('environment.rb')
   #If you've been here already, fire up the bot
-  launch_bot
+  launch_app
 else
   #Create environment.rb
   puts "It looks like it may be your first time here."
@@ -22,5 +32,5 @@ else
   file.puts "SLACK_BOT_TOKEN = \"" + gets.chomp + "\""
   file.close
   #fire up the bot
-  launch_bot
+  launch_app
 end
