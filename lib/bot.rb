@@ -59,6 +59,7 @@ class Bot
 
   # let's get chatty
   i = 0
+  connection_count = 0
   ws = nil
   time_up = false
   threads = []
@@ -66,8 +67,11 @@ class Bot
     ws = WebSocket::Client::Simple.connect url
 
     ws.on :open do 
-      puts "\n\nCONNECTED!"
-      puts "\n\nTo exit simply type 'exit' in the console and press ENTER."
+      if connection_count == 0
+        puts "\n\nCONNECTED!"
+        puts "\n\nTo exit simply type 'exit' in the console and press ENTER."
+        connection_count += 1
+      end
     end
 
     ws.on :error do |e|
@@ -81,7 +85,6 @@ class Bot
       if type == "message"
         channel_id = message['channel']
         text = message['text']
-        puts "Someone said #{text} in channel #{channel_id}"
         if text.strip.downcase == "band"
           date = Bot.get_date_for channel_id
           band_list = Bot.get_band_list(date)
@@ -96,7 +99,8 @@ class Bot
     end
 
     ws.on :close do
-      puts "Connection Closed. Goodbye!"
+
+      #puts "Connection Closed. Goodbye!"
     end
 
     loop do
@@ -113,20 +117,18 @@ class Bot
   threads << Thread.new {
     loop do
       sleep 25
-      puts "Changing connection in 5 secconds"
+      #puts "Changing connection in 5 secconds"
+      if !ws.open?
+        puts "Lost connection...reconnecting"
+      end
       sleep 5
       new_session = get_new_session
       rtm = JSON.parse(new_session)
       new_url = rtm['url']
-      #ws_new = WebSocket::Client::Simple.connect new_url
-      #ws = ws_new
       ws.close
       ws.connect new_url   
-      puts "Connecting to new socket: " + new_url
-      if new_url == ws.url
-        puts "Connection successfully changed."
-      else
-        puts "Connection not changed."
+      if new_url != ws.url
+        puts "Connection refresh error!"
       end
     end
   }
