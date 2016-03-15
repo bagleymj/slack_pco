@@ -44,12 +44,13 @@ class Bot
     return band_list
   end
 
-
-
-  #pco token
-  bot_token = SLACK_BOT_TOKEN
-
-  response = open('https://slack.com/api/rtm.start?token='+ bot_token + '&pretty=1').read
+  def self.get_new_session
+    bot_token = SLACK_BOT_TOKEN
+    response = open('https://slack.com/api/rtm.start?token='+ bot_token + '&pretty=1').read
+    return response
+  end
+  
+  response = get_new_session
 
   $rtm = JSON.parse(response)
 
@@ -58,48 +59,80 @@ class Bot
 
   # let's get chatty
   i = 0
-  ws = WebSocket::Client::Simple.connect url
+  ws = nil
+  time_up = false
+  threads = []
+  threads << Thread.new {
+    ws = WebSocket::Client::Simple.connect url
 
-  ws.on :open do 
-    puts "\n\nCONNECTED!"
-    puts "\n\nTo exit simply type 'exit' in the console and press ENTER."
-  end
+    ws.on :open do 
+      puts "\n\nCONNECTED!"
+      puts "\n\nTo exit simply type 'exit' in the console and press ENTER."
+    end
 
-  ws.on :error do |e|
-    p e
-  end
+    ws.on :error do |e|
+      p e
+    end
 
-  ws.on :message do |msg|
-    msg = msg.to_s
-    message = JSON.parse(msg)
-    type = message['type']
-    if type == "message"
-      channel_id = message['channel']
-      text = message['text']
-      puts "Someone said #{text} in channel #{channel_id}"
-      if text.strip.downcase == "band"
-        date = get_date_for channel_id
-        band_list = get_band_list(date)
-        band_list.each do |member|
-          i += 1
-          response = {id: i, type: 'message', channel: channel_id, text: member}.to_json
-          ws.send response
+    ws.on :message do |msg|
+      msg = msg.to_s
+      message = JSON.parse(msg)
+      type = message['type']
+      if type == "message"
+        channel_id = message['channel']
+        text = message['text']
+        puts "Someone said #{text} in channel #{channel_id}"
+        if text.strip.downcase == "band"
+          date = get_date_for channel_id
+          band_list = get_band_list(date)
+          band_list.each do |member|
+            i += 1
+            response = {id: i, type: 'message', channel: channel_id, text: member}.to_json
+            ws.send response
+          end
         end
       end
+      
     end
-    
-  end
 
-  ws.on :close do
-    puts "Connection Closed. Goodbye!"
-  end
+    ws.on :close do
+      puts "Connection Closed. Goodbye!"
+    end
 
-  loop do
-    msg = gets.chomp.downcase
-    if msg == "exit"
+    loop do
+      msg = gets.chomp.downcase
+      if msg == "exit"
+        ws.close
+        break
+      end
+      #if msg == "url"
+      #  puts ws.url
+      #end
+    end
+  }
+  threads << Thread.new {
+    loop do
+      sleep 25
+      puts "Changing connection in 5 secconds"
+      sleep 5
+      new_session = get_new_session
+      rtm = JSON.parse(new_session)
+      new_url = rtm['url']
+      #ws_new = WebSocket::Client::Simple.connect new_url
+      #ws = ws_new
       ws.close
-      break
+      ws.connect new_url   
+      puts "Connecting to new socket: " + new_url
+      if new_url == ws.url
+        puts "Connection successfully changed."
+      else
+        puts "Connection not changed."
+      end
     end
+  }
+
+  threads.each do |thread|
+    thread.join
   end
 
 end
