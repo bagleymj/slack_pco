@@ -1,4 +1,4 @@
-require './environment.rb'
+require '../environment.rb'
 require 'pco_api'
 require 'date'
 require 'open-uri'

@@ -1,5 +1,5 @@
 class Bot
-  require './environment.rb'
+  require '../environment.rb'
   require 'pco_api'
   require 'open-uri'
   require 'json'
