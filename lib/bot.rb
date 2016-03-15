@@ -1,5 +1,5 @@
 class Bot
-  require '../environment.rb'
+  require_relative '../environment.rb'
   require 'pco_api'
   require 'open-uri'
   require 'json'
@@ -61,7 +61,8 @@ class Bot
   ws = WebSocket::Client::Simple.connect url
 
   ws.on :open do 
-    puts "connected!"
+    puts "\n\nCONNECTED!"
+    puts "\n\nTo exit simply type 'exit' in the console and press ENTER."
   end
 
   ws.on :error do |e|
@@ -72,7 +73,6 @@ class Bot
     msg = msg.to_s
     message = JSON.parse(msg)
     type = message['type']
-    puts "New message of type #{type}"
     if type == "message"
       channel_id = message['channel']
       text = message['text']
@@ -95,7 +95,11 @@ class Bot
   end
 
   loop do
-
+    msg = gets.chomp.downcase
+    if msg == "exit"
+      ws.close
+      break
+    end
   end
 
 end

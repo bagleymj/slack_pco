@@ -1,5 +1,5 @@
 def launch_bot
-  require './bot.rb'
+  require './lib/bot.rb'
   Bot.new
 end
 
