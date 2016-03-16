@@ -1,12 +1,12 @@
 def launch_app
-  require './lib/bot.rb'
-  require './lib/slack.rb'
   processes =[]
   processes << Thread.new{
-    Slack.new
+    require './lib/slack.rb'
+    #Bot.new
   }
   processes << Thread.new{
-    Bot.new
+    require './lib/bot.rb'
+    #Slack.new
   }
   processes.each do |thread|
     thread.join
