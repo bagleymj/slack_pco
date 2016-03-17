@@ -54,10 +54,12 @@ class Bot
     return client
   end
 
-  def get_message(message_text)
+  def get_message(message_text, client)
     bot_words = ['band']
     if bot_words.include? message_text
+      reply_text = "This is my reply"
       puts "I hear ya!"
+      client.reply(reply_text)
     else
       puts "Don't quite understand"
     end

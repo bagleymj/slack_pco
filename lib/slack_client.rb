@@ -21,6 +21,7 @@ class SlackClient
   end
 
   def maintain_session_for(ws, bot)
+    client = self
     ws.on :open do
       puts "CONNECTED!"
       puts "To exit simply type 'exit' in the console and press ENTER."
@@ -33,7 +34,7 @@ class SlackClient
       message = JSON.parse(msg)
       puts message
       if message['type'] == "message"
-        bot.get_message(message['text'].chomp.downcase)
+        bot.get_message(message['text'].chomp.downcase, client)
       end
     end
     ws.on :close do
@@ -69,8 +70,8 @@ class SlackClient
 
   end
 
-  def reply(message__text)
-    puts "This would be a reply!"
+  def reply(reply_text)
+    puts reply_text
   end
 
   def get_socket
