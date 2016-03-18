@@ -12,6 +12,7 @@ class SlackClient
   end
 
   def connect(bot)
+    @i = 0
     response = open('https://slack.com/api/rtm.start?token='+ @bot_token + '&pretty=1').read
     rtm = JSON.parse(response)
     url = rtm['url']
@@ -34,7 +35,7 @@ class SlackClient
       message = JSON.parse(msg)
       puts message
       if message['type'] == "message"
-        bot.get_message(message['text'].chomp.downcase, client)
+        bot.process(message['text'].chomp.downcase, message['channel'], client)
       end
     end
     ws.on :close do
@@ -70,8 +71,10 @@ class SlackClient
 
   end
 
-  def reply(reply_text)
-    puts reply_text
+  def reply(reply_text, channel)
+    @i += 1
+    reply = {id: @i, type: 'message', channel: channel, text: reply_text}.to_json 
+    @ws.send reply
   end
 
   def get_socket
