@@ -1,16 +1,16 @@
 def launch_app
-  #processes =[]
-  #processes << Thread.new{
+  processes =[]
+  processes << Thread.new{
     require './lib/slack_client.rb'
     SlackClient.new
-  #}
-  #processes << Thread.new{
-  #  require './lib/bot.rb'
-  #  #Slack.new
-  #}
-  #processes.each do |thread|
-  #  thread.join
-  #end
+  }
+  processes << Thread.new{
+    require './lib/slack.rb'
+    PCOListener.new
+  }
+  processes.each do |thread|
+    thread.join
+  end
 end
 
 if File.file?('environment.rb')
