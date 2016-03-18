@@ -1,5 +1,6 @@
 class Interface
   require_relative '../environment.rb'
+  require_relative './pco_helper.rb'
   require 'pco_api'
   require 'date'
   
@@ -20,7 +21,8 @@ class Interface
     if month_names.include? channel_name.strip[0,3]
       #parse the date based on the channel name
       date = Date.parse(channel_name)
-      plan = get_plan_for_date date
+      pco = PCOHelper.new
+      plan = pco.get_plan_for_date date
       plan_id = plan['id']
       type_id = plan['relationships']['service_type']['data']['id']
       band = @pco.services.v2.service_types[type_id].plans[plan_id].team_members.get['data']
@@ -34,31 +36,6 @@ class Interface
   end
 
   #pco methods
-  def get_all_plans
-    service_types = @pco.services.v2.service_types.get['data']
-    service_type_ids = []
-    service_types.each do |type|
-      service_type_ids << type['id']
-    end
-    plans = []
-    service_type_ids.each do |type_id|
-      service_type_plans =  @pco.services.v2.service_types[type_id].plans.get['data']
-      service_type_plans.each do |plan|
-        plans << plan
-      end
-    end
-    return plans
-  end
-  
-  def get_plan_for_date date
-    plans = get_all_plans
-    plan_list = plans.select {|plan| Date.parse(plan['attributes']['dates']) == date}
-    if plan_list.empty?
-      return nil
-    else
-      return plan_list[0]
-    end
-  end
 
   #slack methods
   def get_channel_name_for(channel_id)
