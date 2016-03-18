@@ -5,8 +5,7 @@ class Interface
   require 'date'
   
   def initialize
-    @pco = PCO::API::new(basic_auth_token: PCO_APP_ID, 
-                        basic_auth_secret: PCO_SECRET)
+    @pco = PCOHelper.new
     @slack_token = SLACK_API_TOKEN
   end
 
@@ -21,16 +20,7 @@ class Interface
     if month_names.include? channel_name.strip[0,3]
       #parse the date based on the channel name
       date = Date.parse(channel_name)
-      pco = PCOHelper.new
-      plan = pco.get_plan_for_date date
-      plan_id = plan['id']
-      type_id = plan['relationships']['service_type']['data']['id']
-      band = @pco.services.v2.service_types[type_id].plans[plan_id].team_members.get['data']
-      band.each do |member|
-        name = member['attributes']['name']
-        position = member['attributes']['team_position_name']
-        band_list << "#{name} --- #{position}"
-      end
+      band_list = @pco.get_band_list_for_date date
     end
     return band_list
   end
