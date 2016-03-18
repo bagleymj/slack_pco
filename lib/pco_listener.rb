@@ -1,10 +1,15 @@
+class PCOListener
   require_relative '../environment.rb'
+  require './lib/interface.rb'
   require 'pco_api'
   require 'date'
   require 'open-uri'
 
-  @pco = PCO::API::new(basic_auth_token: PCO_APP_ID, 
+  def initialize
+    @pco = PCO::API::new(basic_auth_token: PCO_APP_ID, 
                       basic_auth_secret: PCO_SECRET)
+    listen
+  end
 
     
 
@@ -57,32 +62,37 @@
     end
   end
 
-  puts "Launching PCO Listener"
-  service_type_ids = []
-  service_types = @pco.services.v2.service_types.get['data']
-  service_types.each do |type|
-    service_type_ids << type['id']
-  end 
+
+  def listen
+    puts "Launching PCO Listener"
+    service_type_ids = []
+    service_types = @pco.services.v2.service_types.get['data']
+    service_types.each do |type|
+      service_type_ids << type['id']
+    end 
 
 
 
-  prev_plan_count = get_plan_count(service_type_ids)
-  prev_plan_ids = get_plan_ids(service_type_ids)
+    prev_plan_count = get_plan_count(service_type_ids)
+    prev_plan_ids = get_plan_ids(service_type_ids)
 
-  loop do
-    current_plan_count = get_plan_count(service_type_ids)
-    if current_plan_count > prev_plan_count
-      plan_ids = get_plan_ids(service_type_ids)
-      new_plan_ids = []
-      plan_ids.each do |plan_id|
-        if !prev_plan_ids.include? plan_id
-          new_plan_ids << plan_id
+    loop do
+      current_plan_count = get_plan_count(service_type_ids)
+      if current_plan_count > prev_plan_count
+        plan_ids = get_plan_ids(service_type_ids)
+        new_plan_ids = []
+        plan_ids.each do |plan_id|
+          if !prev_plan_ids.include? plan_id
+            new_plan_ids << plan_id
+          end
         end
+        dates = get_dates(service_type_ids, new_plan_ids)
+        create_channels_for dates
+        prev_plan_count = current_plan_count
+        prev_plan_ids = plan_ids
       end
-      dates = get_dates(service_type_ids, new_plan_ids)
-      create_channels_for dates
-      prev_plan_count = current_plan_count
-      prev_plan_ids = plan_ids
+      sleep 5
+      puts "Listening."
     end
-    sleep 5
   end
+end
