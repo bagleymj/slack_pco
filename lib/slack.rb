@@ -83,8 +83,6 @@
       create_channels_for dates
       prev_plan_count = current_plan_count
       prev_plan_ids = plan_ids
-    else
-      puts "No new plans. Current:#{prev_plan_count} Previous:#{current_plan_count}"
     end
     sleep 5
   end
