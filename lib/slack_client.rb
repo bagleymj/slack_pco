@@ -41,28 +41,6 @@ class SlackClient
     ws.on :close do
       puts "Connection Closed. Goodbye!"
     end
-    #threads = []
-    #threads << Thread.new {
-    #  loop do
-    #    console = gets.chomp.downcase
-    #    if console == "exit"
-    #      ws.close
-    #      threads[1].kill
-    #      break
-    #    end
-    #  end
-    #}
-    #threads << Thread.new {
-    #  sleep 30
-    #  puts "refreshing connection"
-    #  threads[0].kill
-    #  ws.close
-    #  connect
-
-    #}
-    #threads.each do |thread|
-    #  thread.join
-    #end
     sleep 30
     puts "refreshing connection"
     ws.close
