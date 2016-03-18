@@ -5,7 +5,7 @@ def launch_app
     SlackClient.new
   }
   processes << Thread.new{
-    require './lib/slack.rb'
+    require './lib/pco_listener.rb'
     PCOListener.new
   }
   processes.each do |thread|

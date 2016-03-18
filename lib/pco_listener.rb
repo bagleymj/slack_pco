@@ -1,6 +1,7 @@
 class PCOListener
   require_relative '../environment.rb'
-  require './lib/interface.rb'
+  require './interface.rb'
+  require './pco_helper'
   require 'pco_api'
   require 'date'
   require 'open-uri'
@@ -8,6 +9,7 @@ class PCOListener
   def initialize
     @pco = PCO::API::new(basic_auth_token: PCO_APP_ID, 
                       basic_auth_secret: PCO_SECRET)
+    @pco_helper = PCOHelper.new
     listen
   end
 
@@ -92,7 +94,6 @@ class PCOListener
         prev_plan_ids = plan_ids
       end
       sleep 5
-      puts "Listening."
     end
   end
 end
