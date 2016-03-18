@@ -16,12 +16,23 @@ class Interface
   def get_band_list_for channel_id
     band_list = []
     channel_name = get_channel_name_for channel_id
-    if Date::ABBR_MONTHNAMES.include? channel_name.strip[0,3]
+    month_names = []
+    Date::ABBR_MONTHNAMES[1..12].each do |month|
+      month_names << month.downcase
+    end
+    if month_names.include? channel_name.strip[0,3]
       #parse the date based on the channel name
       date = Date.parse(channel_name)
+      plan = get_plan_for_date date
+      plan_id = plan['id']
+      type_id = plan['relationships']['service_type']['data']['id']
+      band = @pco.services.v2.service_types[type_id].plans[plan_id].team_members.get['data']
+      band.each do |member|
+        name = member['attributes']['name']
+        position = member['attributes']['team_position_name']
+        band_list << "#{name} --- #{position}"
+      end
     end
-    plan = get_plan_for date
-    band_list << plan
     return band_list
   end
 
@@ -34,17 +45,22 @@ class Interface
     end
     plans = []
     service_type_ids.each do |type_id|
-      plans << @pco.services.v2.service_types[type_id].plans.get['data']
+      service_type_plans =  @pco.services.v2.service_types[type_id].plans.get['data']
+      service_type_plans.each do |plan|
+        plans << plan
+      end
     end
+    return plans
   end
   
-  def get_plan_for date
+  def get_plan_for_date date
     plans = get_all_plans
-    puts "check for services on #{date.month}/#{date.day}/#{date.year}"
-    plan = plans.select {|plan| Date.parse(plan['attributes']['dates']) == date}
-    plan_date = Date.parse(plan['attributes']['dates'])
-    puts "plan found on #{plan_date.month}/#{plan_date.day}/#{plan_date.year}"
-    return plan
+    plan_list = plans.select {|plan| Date.parse(plan['attributes']['dates']) == date}
+    if plan_list.empty?
+      return nil
+    else
+      return plan_list[0]
+    end
   end
 
   #slack methods
