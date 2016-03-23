@@ -20,7 +20,24 @@ class Interface
     if month_names.include? channel_name.strip[0,3]
       #parse the date based on the channel name
       date = Date.parse(channel_name)
-      band_list = @pco.get_band_list_for_date date
+      band = @pco.get_band_for_date date
+      band.each do |member|
+        name = member['attributes']['name']
+        position = member['attributes']['team_position_name']
+        status = member['attributes']['status']
+        entry = "#{name} --- #{position}"
+        case status
+        when "U"
+          formatted_entry = "_#{entry}_"
+        when "D"
+          formatted_entry = "~#{entry}~"
+        when "C"
+          formatted_entry = entry
+        end
+        
+        
+        band_list << formatted_entry
+      end
     end
     return band_list
   end

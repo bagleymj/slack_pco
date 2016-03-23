@@ -1,4 +1,6 @@
 require_relative "../environment.rb"
+require 'date'
+require 'pco_api'
 class PCOHelper
   def initialize
     @pco = PCO::API::new(basic_auth_token: PCO_APP_ID, 
@@ -6,11 +8,7 @@ class PCOHelper
   end
   
   def get_all_plans
-    service_types = @pco.services.v2.service_types.get['data']
-    service_type_ids = []
-    service_types.each do |type|
-      service_type_ids << type['id']
-    end
+    service_type_ids = get_service_type_ids
     plans = []
     service_type_ids.each do |type_id|
       service_type_plans =  @pco.services.v2.service_types[type_id].plans.get['data']
@@ -19,6 +17,15 @@ class PCOHelper
       end
     end
     return plans
+  end
+
+  def get_service_type_ids
+    service_types = @pco.services.v2.service_types.get['data']
+    service_type_ids = []
+    service_types.each do |type|
+      service_type_ids << type['id']
+    end
+    return service_type_ids
   end
   
   def get_plan_for_date date
@@ -31,18 +38,44 @@ class PCOHelper
     end
   end
 
-  def get_band_list_for_date date
-    band_list = []
+  def get_band_for_date date
+    team = get_team_for_date date
+    name = "band"
+    team_ids = get_team_ids_for name
+    band = []
+    team.each do |member|
+      if team_ids.include? member['relationships']['team']['data']['id']
+        band << member
+      end
+    end
+    return band
+  end
+
+  def get_team_for_date date
     plan = get_plan_for_date date
     plan_id = plan['id']
     type_id = plan['relationships']['service_type']['data']['id']
-    band = @pco.services.v2.service_types[type_id].plans[plan_id].team_members.get['data']
-    band.each do |member|
-      name = member['attributes']['name']
-      position = member['attributes']['team_position_name']
-      band_list << "#{name} --- #{position}"
+    team = @pco.services.v2.service_types[type_id].plans[plan_id].team_members.get['data']
+  end
+
+
+  def get_team_ids_for name
+    service_type_ids = get_service_type_ids
+    teams = []
+    service_type_ids.each do |type_id|
+      @pco.services.v2.service_types[type_id].teams.get['data'].each do |team|
+        teams << team
+      end
     end
-    return band_list
+    filtered_teams = teams.select{|team| team['attributes']['name'].chomp.downcase == name}
+    team_ids = []
+    filtered_teams.each do |team|
+      if !team_ids.include? team['id']
+        team_ids << team['id']
+      end
+    end
+    return team_ids
+      
   end
 
 end
