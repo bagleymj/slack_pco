@@ -13,11 +13,7 @@ class Interface
   def get_band_list_for channel_id
     band_list = []
     channel_name = get_channel_name_for channel_id
-    month_names = []
-    Date::ABBR_MONTHNAMES[1..12].each do |month|
-      month_names << month.downcase
-    end
-    if month_names.include? channel_name.strip[0,3]
+    if is_date? channel_name
       #parse the date based on the channel name
       date = Date.parse(channel_name)
       band = @pco.get_band_for_date date
@@ -41,6 +37,10 @@ class Interface
     end
     return band_list
   end
+  def get_team_list_for channel_id
+    # One method to handle all scopes
+
+  end
 
   #pco methods
 
@@ -51,6 +51,14 @@ class Interface
     channel_info = JSON.parse(response)
     channel_info['channel']['name']
 
+  end
+
+  def is_date?(channel_name)
+    month_names = []
+    Date::ABBR_MONTHNAMES[1..12].each do |month|
+      month_names << month.downcase
+    end
+    month_names.include? channel_name.strip[0,3]
   end
 
 end

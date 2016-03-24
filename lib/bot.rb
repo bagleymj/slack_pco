@@ -24,6 +24,11 @@ class Bot
       band.each do |member|
         client.reply(member, channel)
       end
+    when 'volunteers','team'
+      vols = interface.get_team_list_for channel
+      vols.each do |vol|
+        client.reply(vol, channel)
+      end
     end
   end
 
