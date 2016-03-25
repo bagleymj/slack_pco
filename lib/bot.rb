@@ -15,19 +15,18 @@ class Bot
   end
 
   def process(message_text, channel, client)
-    bot_words = ['band']
+    bot_words = ['band','musicians']
     interface = Interface.new
     #define bot behavior
-    case message_text
-    when 'band'
-      band = interface.get_team_for channel, 'band'
-      band.each do |member|
-        client.reply(member, channel)
+    if bot_words.include? message_text
+      team_name = nil
+      case message_text
+      when 'band', 'musicians'
+        team_name = 'band'
       end
-    when 'volunteers','team'
-      vols = interface.get_team_list_for channel
-      vols.each do |vol|
-        client.reply(vol, channel)
+      team = interface.get_team_for channel, team_name
+      team.each do |member|
+        client.reply(member, channel)
       end
     end
   end
