@@ -38,20 +38,20 @@ class PCOHelper
     end
   end
 
-  def get_band_for_date date
-    team = get_team_for_date date
-    name = "band"
+  def get_team_for date, team_name
+    team = get_full_team_for_date date
+    name = team_name
     team_ids = get_team_ids_for name
-    band = []
+    filtered_team = []
     team.each do |member|
       if team_ids.include? member['relationships']['team']['data']['id']
-        band << member
+        filtered_team << member
       end
     end
-    return band
+    return filtered_team
   end
 
-  def get_team_for_date date
+  def get_full_team_for_date date
     plan = get_plan_for_date date
     plan_id = plan['id']
     type_id = plan['relationships']['service_type']['data']['id']

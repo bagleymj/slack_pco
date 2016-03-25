@@ -20,7 +20,7 @@ class Bot
     #define bot behavior
     case message_text
     when 'band'
-      band = interface.get_band_list_for channel
+      band = interface.get_team_for channel, 'band'
       band.each do |member|
         client.reply(member, channel)
       end

@@ -10,14 +10,14 @@ class Interface
   end
 
   #interface methods
-  def get_band_list_for channel_id
+  def get_team_for channel_id, team_name
     band_list = []
     channel_name = get_channel_name_for channel_id
     if is_date? channel_name
       #parse the date based on the channel name
       date = Date.parse(channel_name)
-      band = @pco.get_band_for_date date
-      band.each do |member|
+      team = @pco.get_team_for date, team_name
+      team.each do |member|
         name = member['attributes']['name']
         position = member['attributes']['team_position_name']
         status = member['attributes']['status']
@@ -37,12 +37,6 @@ class Interface
     end
     return band_list
   end
-  def get_team_list_for channel_id
-    # One method to handle all scopes
-
-  end
-
-  #pco methods
 
   #slack methods
   def get_channel_name_for(channel_id)
