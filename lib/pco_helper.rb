@@ -43,9 +43,13 @@ class PCOHelper
     name = team_name
     team_ids = get_team_ids_for name
     filtered_team = []
-    team.each do |member|
-      if team_ids.include? member['relationships']['team']['data']['id']
-        filtered_team << member
+    if name = 'volunteers'
+      filtered_team = team
+    else
+      team.each do |member|
+        if team_ids.include? member['relationships']['team']['data']['id']
+          filtered_team << member
+        end
       end
     end
     return filtered_team
