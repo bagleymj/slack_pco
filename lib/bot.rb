@@ -15,17 +15,23 @@ class Bot
   end
 
   def process(message_text, channel, client)
-    bot_words = ['band','musicians','volunteers','team']
+    band_words = ['band','musicians']
+    kids_words = ['kids','children','nursery',"childeren's ministry"]
+    team_words = ['volunteers', 'team', 'everyone']
+    bot_words = band_words + kids_words + team_words
     interface = Interface.new
     #define bot behavior
-    if bot_words.include? message_text
+    if bot_words.include? message_text.chomp.downcase
       team_name = nil
       case message_text
-      when 'band', 'musicians'
+      when *band_words
         team_name = 'band'
-      when 'volunteers'
-        team_name = 'volunteers', 'team'
+      when *team_words
+        team_name = 'volunteers'
+      when *kids_words
+        team_name = "mhc kids"
       end
+      
       team = interface.get_team_for channel, team_name
       team.each do |member|
         client.reply(member, channel)

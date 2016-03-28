@@ -43,7 +43,7 @@ class PCOHelper
     name = team_name
     team_ids = get_team_ids_for name
     filtered_team = []
-    if name = 'volunteers'
+    if name == 'volunteers'
       filtered_team = team
     else
       team.each do |member|
@@ -64,13 +64,7 @@ class PCOHelper
 
 
   def get_team_ids_for name
-    service_type_ids = get_service_type_ids
-    teams = []
-    service_type_ids.each do |type_id|
-      @pco.services.v2.service_types[type_id].teams.get['data'].each do |team|
-        teams << team
-      end
-    end
+    teams = get_all_teams
     filtered_teams = teams.select{|team| team['attributes']['name'].chomp.downcase == name}
     team_ids = []
     filtered_teams.each do |team|
@@ -79,7 +73,17 @@ class PCOHelper
       end
     end
     return team_ids
-      
+  end
+
+  def get_all_teams
+    service_type_ids = get_service_type_ids
+    teams = []
+    service_type_ids.each do |type_id|
+      @pco.services.v2.service_types[type_id].teams.get['data'].each do |team|
+        teams << team
+      end
+    end
+    return teams
   end
 
 end

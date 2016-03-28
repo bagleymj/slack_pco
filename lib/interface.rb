@@ -11,7 +11,7 @@ class Interface
 
   #interface methods
   def get_team_for channel_id, team_name
-    band_list = []
+    team_list = []
     channel_name = get_channel_name_for channel_id
     if is_date? channel_name
       #parse the date based on the channel name
@@ -32,10 +32,10 @@ class Interface
         end
         
         
-        band_list << formatted_entry
+        team_list << formatted_entry
       end
     end
-    return band_list
+    return team_list
   end
 
   #slack methods
