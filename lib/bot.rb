@@ -18,7 +18,12 @@ class Bot
     band_words = ['band','musicians']
     kids_words = ['kids','children','nursery',"childeren's ministry"]
     team_words = ['volunteers', 'team', 'everyone']
-    bot_words = band_words + kids_words + team_words
+    first_impressions_words = ['welcome','coffee', 'first impressions',
+                               'hospitality','parking']
+    facilities_words = ['setup','tear down','set up', 'teardown', 'loading',
+                        'unloading']
+    av_words = ['sound','lights','av','audio','audio visual','sound guy']
+    bot_words = band_words + kids_words + team_words + first_impressions_words + facilities_words + av_words
     interface = Interface.new
     #define bot behavior
     if bot_words.include? message_text.chomp.downcase
@@ -30,6 +35,12 @@ class Bot
         team_name = 'volunteers'
       when *kids_words
         team_name = "mhc kids"
+      when *first_impressions_words
+        team_name = 'first impressions'
+      when *facilities_words
+        team_name = 'facilities'
+      when *av_words
+        team_name = 'audio/visual'
       end
       
       team = interface.get_team_for channel, team_name
