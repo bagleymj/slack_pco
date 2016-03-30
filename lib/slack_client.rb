@@ -16,7 +16,15 @@ class SlackClient
     response = open('https://slack.com/api/rtm.start?token='+ @bot_token + '&pretty=1').read
     rtm = JSON.parse(response)
     url = rtm['url']
-    ws = WebSocket::Client::Simple.connect url
+    ws = nil
+    try = 0
+    begin
+      try += 1
+      ws = WebSocket::Client::Simple.connect url
+    rescue
+      puts "Try #{try.to_s}: Failed to Connect...retrying"
+      retry
+    end
     @ws = ws
     maintain_session_for ws, bot
   end
@@ -25,7 +33,6 @@ class SlackClient
     client = self
     ws.on :open do
       puts "CONNECTED!"
-      puts "To exit simply type 'exit' in the console and press ENTER."
     end
     ws.on :error do |e|
       p e
