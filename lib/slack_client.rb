@@ -13,9 +13,7 @@ class SlackClient
 
   def connect(bot)
     @i = 0
-    response = open('https://slack.com/api/rtm.start?token='+ @bot_token + '&pretty=1').read
-    rtm = JSON.parse(response)
-    url = rtm['url']
+    url = get_url
     ws = nil
     try = 0
     begin
@@ -48,12 +46,31 @@ class SlackClient
     ws.on :close do
       puts "Connection Closed. Goodbye!"
     end
-    sleep 30
-    puts "refreshing connection"
-    ws.close
-    connect(bot)
+    loop do
+      sleep 30
+      puts "Getting new URL"
+      url = get_url
+      puts "Refreshing Connection"
+      begin
+        ws.connect url
+        handshake = ws.handshake
+        puts handshake
+        puts "Now connected to #{url}"
+      rescue
+        puts "Connection failed, retrying"
+        retry
+      end
+      
+    end
+    #connect(bot)
 
 
+  end
+
+  def get_url
+    response = open('https://slack.com/api/rtm.start?token='+ @bot_token + '&pretty=1').read
+    rtm = JSON.parse(response)
+    rtm['url']
   end
 
   def reply(reply_text, channel)
