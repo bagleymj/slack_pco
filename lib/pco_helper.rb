@@ -38,6 +38,44 @@ class PCOHelper
     end
   end
 
+  def get_future_plans
+    plans = get_all_plans
+    plans.select {|plan| Date.parse(plan['attributes']['dates']) >= Date.today}
+  end
+  
+  def get_dates(new_plan_keys)
+    new_dates = []
+    new_plan_keys.each do |key|
+      plan = @pco.services.v2.service_types[key[:service_type_id]].plans[key[:plan_id]].get['data']
+      date = plan['attributes']['dates']
+      parsed_date = Date.parse(date)
+      month = Date::ABBR_MONTHNAMES[parsed_date.month].downcase
+      #set suffix
+      if !parsed_date.day.between?(11,19)
+        case parsed_date.day
+        when 1
+          suf = "st"
+        when 2
+          suf = "nd"
+        when 3
+          suf = "rd"
+        else
+          suf = "th"
+        end
+      else
+        suf = "th"
+      end
+      day = "#{parsed_date.day}#{suf}"
+      year = parsed_date.year
+      formatted_date = "#{month}#{day}#{year}"
+      new_dates << formatted_date
+    end
+    new_dates.each do |date|
+      puts date
+    end
+    return new_dates
+  end
+
   def get_team_for date, team_name
     team = get_full_team_for_date date
     name = team_name

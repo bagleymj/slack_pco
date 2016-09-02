@@ -19,7 +19,7 @@ class PCOListener
     #initial plan count
     plan_count = 0
     service_type_ids.each do |type|
-      plans = @pco.services.v2.service_types[type].plans.get['data']
+      plans = @pco.services.v2.service_types[type].plans.get(filter: "future")['data']
       plans.each do |plan|
         plan_count += 1
       end
@@ -27,40 +27,21 @@ class PCOListener
     return plan_count
   end
 
-  def get_plan_ids(service_type_ids)
-    plan_ids = []
+  def get_plan_keys(service_type_ids)
+    plan_keys = []
     service_type_ids.each do |type|
-      plans = @pco.services.v2.service_types[type].plans.get['data']
+      plans = @pco.services.v2.service_types[type].plans.get(filter: "future")['data']
       plans.each do |plan|
-        plan_ids << plan['id']
+        plan_keys << {service_type_id: type, plan_id: plan['id']}
       end
     end
-    return plan_ids
-  end
-
-  def get_dates(service_type_ids, new_plan_ids)
-    new_dates = []
-    service_type_ids.each do |type_id|
-      new_plan_ids.each do |plan_id|
-        plan = @pco.services.v2.service_types[type_id].plans[plan_id].get['data']
-        date = plan['attributes']['dates']
-        parsed_date = Date.parse(date)
-        month = Date::ABBR_MONTHNAMES[parsed_date.month].downcase
-        day = "#{parsed_date.day}th"
-        year = parsed_date.year
-        formatted_date = "#{month}#{day}#{year}"
-        new_dates << formatted_date
-      end
-    end
-    new_dates.each do |date|
-      puts date
-    end
-    return new_dates
+    return plan_keys
   end
 
   def create_channels_for(dates)
     dates.each do |date|
-      resp = open('https://slack.com/api/channels.create?token=xoxp-24886241922-24886396823-26639668375-4904edc63a&name='+ date + '&pretty=1')
+      resp = open('https://slack.com/api/channels.create?token=' + SLACK_API_TOKEN + '&name='+ date + '&pretty=1')
+      puts resp
     end
   end
 
@@ -76,22 +57,26 @@ class PCOListener
 
 
     prev_plan_count = get_plan_count(service_type_ids)
-    prev_plan_ids = get_plan_ids(service_type_ids)
+    prev_plan_keys = get_plan_keys(service_type_ids)
 
     loop do
+      #listen for new plans
       current_plan_count = get_plan_count(service_type_ids)
+      puts "Was " + prev_plan_count.to_s
+      puts "Now " + current_plan_count.to_s
       if current_plan_count > prev_plan_count
-        plan_ids = get_plan_ids(service_type_ids)
-        new_plan_ids = []
-        plan_ids.each do |plan_id|
-          if !prev_plan_ids.include? plan_id
-            new_plan_ids << plan_id
+        puts "Adding plan to Slack"
+        plan_keys = get_plan_keys(service_type_ids)
+        new_plan_keys = []
+        plan_keys.each do |plan_key|
+          if !prev_plan_keys.include? plan_key
+            new_plan_keys << plan_key
           end
         end
-        dates = get_dates(service_type_ids, new_plan_ids)
+        dates = @pco_helper.get_dates(new_plan_keys)
         create_channels_for dates
         prev_plan_count = current_plan_count
-        prev_plan_ids = plan_ids
+        prev_plan_keys = plan_keys
       end
       sleep 5
     end

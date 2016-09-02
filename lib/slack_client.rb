@@ -8,34 +8,40 @@ class SlackClient
   def initialize
     @bot_token = SLACK_BOT_TOKEN
     bot = Bot.new
-    connect(bot)
+    @ws = nil
+    start_session(bot)
   end
 
-  def connect(bot)
+  def start_session(bot)
+    loop do
+      connect
+      maintain_session_for bot
+    end
+  end
+
+  def connect
     @i = 0
     url = get_url
-    ws = nil
     try = 0
+
     begin
       try += 1
-      ws = WebSocket::Client::Simple.connect url
+      @ws = WebSocket::Client::Simple.connect url
     rescue
       puts "Try #{try.to_s}: Failed to Connect...retrying"
       retry
     end
-    @ws = ws
-    maintain_session_for ws, bot
   end
 
-  def maintain_session_for(ws, bot)
+  def maintain_session_for(bot)
     client = self
-    ws.on :open do
+    @ws.on :open do
       puts "CONNECTED!"
     end
-    ws.on :error do |e|
+    @ws.on :error do |e|
       p e
     end
-    ws.on :message do |msg|
+    @ws.on :message do |msg|
       msg = msg.to_s
       message = JSON.parse(msg)
       puts message
@@ -43,28 +49,10 @@ class SlackClient
         bot.process(message['text'].chomp.downcase, message['channel'], client)
       end
     end
-    ws.on :close do
+    @ws.on :close do
       puts "Connection Closed. Goodbye!"
     end
-    loop do
-      sleep 30
-      puts "Getting new URL"
-      url = get_url
-      puts "Refreshing Connection"
-      begin
-        ws.connect url
-        handshake = ws.handshake
-        puts handshake
-        puts "Now connected to #{url}"
-      rescue
-        puts "Connection failed, retrying"
-        retry
-      end
-      
-    end
-    #connect(bot)
-
-
+    sleep 30
   end
 
   def get_url
